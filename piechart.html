@@ -1,0 +1,173 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+  
+   
+    <script type="text/javascript" src="piechart-Dateien/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+      
+	// String in Boolean konvertieren
+	function stringToBool(val) {
+		return (val + '').toLowerCase() === 'true';
+	}
+	 
+	// Parst die URL-Parameter und Uebergibt diese als "HashMap"
+	var get_params = function(search_string) {
+
+		  var parse = function(params, pairs) {
+			var pair = pairs[0];
+			var parts = pair.split('=');
+			var key = decodeURIComponent(parts[0]);
+			var value = decodeURIComponent(parts.slice(1).join('='));
+
+			// Handle multiple parameters of the same name
+			if (typeof params[key] === "undefined") {
+			  params[key] = value;
+			} else {
+			  params[key] = [].concat(params[key], value);
+			}
+
+			return pairs.length == 1 ? params : parse(params, pairs.slice(1))
+		  }
+
+		  // Get rid of leading ?
+		  return search_string.length == 0 ? {} : parse({}, search_string.substr(1).split('&'));
+		}
+  
+  
+	// Zeichnet das Tortendiagramm
+	// Die Groesse der Tortenstuecke wird anhand der URL-Parameter festgelegt. 
+	// Beispiel fuer Aufrufparamter:
+	// ?data=Januar;20;FFA500;0.0;Februar;30;FFFF00;0.1;Maerz;10;008000;0.2&width=500&height=500&umrandung=30&variante=loch&lochgroesse=0.5&hintergrundfarbe=FF0000&schriftgroesse=10&schriftname=Times&schriftfarbe=000000&anzeigeformat=keines
+	function drawChart() {
+
+		// URL-Parameter auslesen
+		var params = get_params(location.search);
+	 
+	    // Daten in flaches Array ueberfuehren
+		var dataAsString = params['data']; 
+		var flatDataArray = dataAsString.split(";");
+		var anzahlDatenpunkte = flatDataArray.length/4;
+	
+	
+	   // Flaches Array in zweidimensionales Array umwandeln
+	   var dataArray = [];
+	   dataArray.push(['Category', 'Amount']);
+  	   for (var i=0; i<anzahlDatenpunkte; i++){
+		 dataArray.push([flatDataArray[i*4], parseInt(flatDataArray[i*4+1])]);
+	   }
+	 
+	   // Breite und Hoehe ermitteln
+	   var breite = parseInt(params['width']);
+	   var hoehe = parseInt(params['height']);
+	
+	   // Breite der Umrandung innerhalb der Chartarea ermittlen (in Pixel)
+	   var umrandung = parseInt(params['umrandung']);
+	   
+	   // Anzeigevariante ermitteln
+	   // Mögliche Varianten sind Standard, 3D oder mit Loch
+	   var anzeigeVariante = params['variante'];
+	   var is3Dimensional;  	
+	   var isLoch;  		
+	   var lochGroesse;	   
+	   if (anzeigeVariante == 'standard'){
+			is3Dimensional = false;
+			isLoch = false;
+	   }
+	   if (anzeigeVariante == '3d'){
+			is3Dimensional = true;
+			isLoch = false;
+	   }
+	   if (anzeigeVariante == 'loch'){
+			is3Dimensional = false;
+			isLoch = true;
+			lochGroesse = parseFloat(params['lochgroesse']);
+	   }
+	   
+	   // Hintergrundfarbe ermitteln
+	   var hintergrundfarbe = params['hintergrundfarbe'] 
+	   
+	   // Schrifteinstellungen ermitteln
+	   var schriftGroesse = params['schriftgroesse'];
+	   var schriftName = params['schriftname'];
+	   var schriftFarbe = params['schriftfarbe'];
+	   
+	   // Anzeigeformat der Tortenstuecke ermitteln
+	   var anzeigeFormat = "percentage";
+	   var anzeigeFormat = params['anzeigeformat'];
+	   
+	 
+		var data = google.visualization.arrayToDataTable(dataArray);
+
+        var options = {
+		
+		pieSliceText : anzeigeFormat,
+		width : breite,
+		height: hoehe,
+		fontSize: 10,
+		chartArea: {
+			left:umrandung,top:umrandung,width:breite-umrandung*2,height:hoehe-umrandung*2
+		},
+		legend: 'none',
+		backgroundColor : hintergrundfarbe,
+		slices: {  
+          }
+        };
+		
+		// Farben und Ausrückungen der Datenpunkte definieren
+		for (var i=0; i<anzahlDatenpunkte; i++){
+			options.slices[i]= { color: flatDataArray[i*4+2], offset : parseFloat(flatDataArray[i*4+3])};
+	    }
+		
+		// Anzeigevariante definieren
+		options.is3D = is3Dimensional;
+		if (isLoch){
+			options.pieHole = lochGroesse;
+		};
+		
+		options.pieSliceTextStyle = {
+			color : schriftFarbe,
+			fontName: schriftName,
+			fontSize : schriftGroesse
+		};
+		
+		
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        chart.draw(data, options);
+      }
+	  
+	  
+	
+  
+  
+    </script>
+  <script type="text/javascript" charset="UTF-8" src="piechart-Dateien/loader_002.js"></script>
+  <link id="load-css-0" rel="stylesheet" type="text/css" href="piechart-Dateien/tooltip.css">
+  <link id="load-css-1" rel="stylesheet" type="text/css" href="piechart-Dateien/util.css">
+  <script type="text/javascript" charset="UTF-8" src="piechart-Dateien/jsapi_compiled_format_module.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="piechart-Dateien/jsapi_compiled_default_module.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="piechart-Dateien/jsapi_compiled_ui_module.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="piechart-Dateien/jsapi_compiled_corechart_module.js"></script>
+  </head>
+  
+  <body>
+    <div id="piechart" style="width: 300px; height: 200px;">
+		<div style="position: absolute;">
+	<!--	<div style="position: relative; width: 300px; height: 200px;" dir="ltr">-->
+			<div style="position: absolute; top: 0px; left: 0px;" dir="ltr">
+				<div style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;" aria-label="A chart.">
+					<svg width="300" height="200" style="overflow: hidden;" aria-label="A chart.">
+						<defs id="defs"></defs><rect x="0" y="0" width="1000" height="600" stroke="none" stroke-width="0" fill="#ffffff"></rect><g></g>
+					</svg>
+					<div aria-label="A tabular representation of the data in the chart." style="position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden;">
+						<table><thead><tr><th>Category</th><th>Amount</th></tr></thead><tbody><tr><td>Verfuegbar (andere Banken)</td><td>NaN</td></tr><tr><td>Verfuegbar (bei Postbank)</td><td>NaN</td></tr><tr><td>Zurueckgelegt</td><td>NaN</td></tr><tr><td>Investiert</td><td>NaN</td></tr></tbody></table></div></div></div><div style="display: none; position: absolute; top: 610px; left: 1010px; white-space: nowrap; font-family: Arial; font-size: 8px;" aria-hidden="true">-._.-*^*-._.-*^*-._.-
+					</div>
+				<div>
+			</div>
+		</div>
+	</div>
+  
+
+</body></html>
